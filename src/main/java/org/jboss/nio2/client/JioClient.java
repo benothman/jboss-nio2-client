@@ -153,7 +153,7 @@ public class JioClient extends Thread {
 
         Random random = new Random();
         // Wait a delay to ensure that all threads are ready
-        sleep(DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
+        sleep(2 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
         long time = 0;
         String response = null;
         int counter = 0;
