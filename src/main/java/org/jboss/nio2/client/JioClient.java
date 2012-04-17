@@ -49,10 +49,6 @@ public class JioClient extends Thread {
      */
     public static final int MAX = 1000;
     /**
-     *
-     */
-    public static final int N_THREADS = 100;
-    /**
      * Default wait delay 1000ms
      */
     public static final int DEFAULT_DELAY = 1000;
@@ -153,14 +149,12 @@ public class JioClient extends Thread {
 
         Random random = new Random();
         // Wait a delay to ensure that all threads are ready
-        sleep(2 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
+        sleep(4 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
         long time = 0;
         String response = null;
         int counter = 0;
         int min_count = 10 * 1000 / delay;
         int max_count = 50 * 1000 / delay;
-        // wait 5sec to ensure that all clients are ready
-        Thread.sleep(5000);
         while ((this.max--) > 0) {
             Thread.sleep(this.delay);
             try {
@@ -242,9 +236,9 @@ public class JioClient extends Thread {
     public static void main(String[] args) throws Exception {
 
         if (args.length < 1) {
-            System.err.println("Usage: java " + TestClient.class.getName() + " URL [n] [max] [delay]");
+            System.err.println("Usage: java " + TestClient.class.getName() + " URL [n] [delay]");
             System.err.println("\tURL: The url of the service to test.");
-            System.err.println("\tn: The number of threads. (default is " + N_THREADS + ")");
+            System.err.println("\tn: The number of clients. (default is " + NB_CLIENTS + ")");
             System.err.println("\tdelay: The delay between writes. (default is " + DEFAULT_DELAY + "ms)");
             System.exit(1);
         }
