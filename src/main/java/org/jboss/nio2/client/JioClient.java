@@ -135,7 +135,7 @@ public class JioClient extends Thread {
         // Open connection with server
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
         this.channel = new Socket(this.url.getHost(), this.url.getPort());
-        this.channel.setSoTimeout(2000);
+        this.channel.setSoTimeout(5000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
