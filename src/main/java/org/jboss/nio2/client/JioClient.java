@@ -113,21 +113,15 @@ public class JioClient extends Thread {
     @Override
     public void run() {
         try {
-            long total_running_time = System.currentTimeMillis();
             // Connect to the server
             this.connect();
             // wait for 2 seconds until all threads are ready
             sleep(2 * DEFAULT_DELAY);
             runit();
-            total_running_time = System.currentTimeMillis() - total_running_time;
-            System.out.println("[Thread-" + getId() + "] Total running time: " + total_running_time
-                    + " ms");
         } catch (Exception exp) {
             System.err.println("Exception: " + exp.getMessage());
             exp.printStackTrace();
         } finally {
-            System.out.println("[Thread-" + getId() + "] terminated -> "
-                    + System.currentTimeMillis());
             try {
                 this.channel.close();
             } catch (IOException ioex) {
@@ -145,6 +139,7 @@ public class JioClient extends Thread {
         // Open connection with server
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
         this.channel = new Socket(this.url.getHost(), this.url.getPort());
+        this.channel.setSoTimeout(2000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
@@ -164,6 +159,8 @@ public class JioClient extends Thread {
         int counter = 0;
         int min_count = 10 * 1000 / delay;
         int max_count = 50 * 1000 / delay;
+        // wait 5sec to ensure that all clients are ready
+        Thread.sleep(5000);
         while ((this.max--) > 0) {
             Thread.sleep(this.delay);
             try {
