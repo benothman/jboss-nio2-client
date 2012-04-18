@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@code JioClient}
@@ -36,6 +37,7 @@ import java.util.Random;
  */
 public class JioClient extends Thread {
 
+    private static final AtomicInteger counter = new AtomicInteger(0);
     /**
      *
      */
@@ -111,8 +113,12 @@ public class JioClient extends Thread {
         try {
             // Connect to the server
             this.connect();
+            while (counter.get() < NB_CLIENTS) {
+                // wait until all clients connects
+                sleep(100);
+            }
             // wait for 2 seconds until all threads are ready
-            sleep(2 * DEFAULT_DELAY);
+            sleep(DEFAULT_DELAY);
             runit();
         } catch (Exception exp) {
             System.err.println("Exception: " + exp.getMessage());
@@ -133,12 +139,14 @@ public class JioClient extends Thread {
      */
     protected void connect() throws Exception {
         // Open connection with server
+        Thread.sleep(5000 * new Random().nextInt(NB_CLIENTS));
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
         this.channel = new Socket(this.url.getHost(), this.url.getPort());
         this.channel.setSoTimeout(5000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
+        counter.incrementAndGet();
     }
 
     /**
