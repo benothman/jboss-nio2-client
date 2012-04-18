@@ -139,7 +139,7 @@ public class JioClient extends Thread {
      */
     protected void connect() throws Exception {
         // Open connection with server
-        Thread.sleep(new Random().nextInt(NB_CLIENTS));
+        Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
         this.channel = new Socket(this.url.getHost(), this.url.getPort());
         this.channel.setSoTimeout(5000);
