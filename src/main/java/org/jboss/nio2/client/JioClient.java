@@ -252,19 +252,13 @@ public class JioClient extends Thread {
         }
 
         URL strURL = new URL(args[0]);
-        int max = 1000, delay = DEFAULT_DELAY;
+        int delay = DEFAULT_DELAY;
 
         if (args.length > 1) {
             try {
                 NB_CLIENTS = Integer.parseInt(args[1]);
                 if (args.length > 2) {
-                    max = Integer.parseInt(args[2]);
-                    if (max < 1) {
-                        throw new IllegalArgumentException("Negative number: max");
-                    }
-                }
-                if (args.length > 3) {
-                    delay = Integer.parseInt(args[3]);
+                    delay = Integer.parseInt(args[2]);
                     if (delay < 1) {
                         throw new IllegalArgumentException("Negative number: delay");
                     }
@@ -278,7 +272,6 @@ public class JioClient extends Thread {
         System.out.println("\nRunning test with parameters:");
         System.out.println("\tURL: " + strURL);
         System.out.println("\tn: " + NB_CLIENTS);
-        System.out.println("\tmax: " + max);
         System.out.println("\tdelay: " + delay);
 
         JioClient clients[] = new JioClient[NB_CLIENTS];
