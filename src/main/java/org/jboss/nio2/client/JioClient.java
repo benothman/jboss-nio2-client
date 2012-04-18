@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JioClient extends Thread {
 
-    private static final AtomicInteger counter = new AtomicInteger(0);
+    private static final AtomicInteger connections = new AtomicInteger(0);
     /**
      *
      */
@@ -105,7 +105,7 @@ public class JioClient extends Thread {
      * @param delay
      */
     public JioClient(int delay) {
-        this(55 * 1000 / delay, delay);
+        this(60 * 1000 / delay, delay);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class JioClient extends Thread {
         try {
             // Connect to the server
             this.connect();
-            while (counter.get() < NB_CLIENTS) {
+            while (connections.get() < NB_CLIENTS) {
                 // wait until all clients connects
                 sleep(100);
             }
@@ -142,11 +142,11 @@ public class JioClient extends Thread {
         Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
         this.channel = new Socket(this.url.getHost(), this.url.getPort());
-        this.channel.setSoTimeout(5000);
+        this.channel.setSoTimeout(10000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
-        counter.incrementAndGet();
+        connections.incrementAndGet();
     }
 
     /**
