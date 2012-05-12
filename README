@@ -1,0 +1,67 @@
+/**
+ * JBoss, Home of Professional Open Source. Copyright 2012, Red Hat, Inc., and
+ * individual contributors as indicated by the @author tags. See the
+ * copyright.txt file in the distribution for a full listing of individual
+ * contributors.
+ * 
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ * 
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
+ */
+ 
+ 
+ 
+ 
+ This project is a client application used for testing JBoss-web but it can be used for 
+ any web server. This application allows testing the response time (MAX, MIN & AVG).
+ 
+ To use this application, please follow this steps:
+ 
+ 1) Download the application zip file and uncompress it.
+ 
+ 2) This project is a maven based application. So if you do not have maven already installed
+    please visit the maven web site to see how to install it.
+	Maven web site URL: http://maven.apache.org
+	
+	NB: to ensure that maven is well installed, open a command line terminal and execute 
+	    this command « mvn -v ». You should see something like the following:
+	    
+	    Apache Maven 3.0.3 (r1075438; 2011-02-28 18:31:09+0100)
+		Maven home: /usr/share/maven
+		Java version: 1.6.0_31, vendor: Apple Inc.
+		Java home: /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+		Default locale: en_US, platform encoding: UTF-8
+		OS name: "mac os x", version: "10.7.3", arch: "x86_64", family: "mac"
+	
+ 3)	When the maven installation is completed, open a command line terminal and navigate to
+    the project installation directory. Once there, execute the command: 
+    « mvn clean install »
+    
+ 4) The project now is built, so to start the test, just execute the shell script "run.sh"
+    as following:
+    
+    projectDir$ sh run.sh url n delay nReq
+    
+    with:
+      url: Your application URL
+      n  : The number of clients
+      delay: The delay between two requests
+      nReq : The total number of requests per second
+      
+    Example:
+      
+      projectDir$ sh run.sh http://www.your-domaine.com/your-app 1000 1000 5000
+    	
+    
+	
