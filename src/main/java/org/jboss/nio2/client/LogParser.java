@@ -19,10 +19,10 @@
  */
 package org.jboss.nio2.client;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -47,7 +47,7 @@ public class LogParser {
      * @param filename
      * @throws Exception
      */
-    public static void parse(String filename) throws Exception {
+    public static void parse(String filename, int n) throws Exception {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
         String line = null;
         // drop the header line
@@ -57,9 +57,9 @@ public class LogParser {
         String tab[];
         int counter = 0;
 
-        LinkedList<Integer> max_times = new LinkedList<>();
-        LinkedList<Integer> min_times = new LinkedList<>();
-        LinkedList<Double> avg_times = new LinkedList<>();
+        LinkedList<Integer> max_times = new LinkedList<Integer>();
+        LinkedList<Integer> min_times = new LinkedList<Integer>();
+        LinkedList<Double> avg_times = new LinkedList<Double>();
 
         while ((line = br.readLine()) != null) {
             if (line.matches("\\s*")) {
@@ -101,7 +101,6 @@ public class LogParser {
         br.close();
 
         // sort lists
-        System.out.println("Sorting collections");
         Collections.sort(max_times);
         Collections.sort(min_times);
         Collections.sort(avg_times);
@@ -109,7 +108,6 @@ public class LogParser {
         double avg = 0;
 
         int toRemove = 12 * counter / 100;
-        System.out.println("Filter collections");
         for (int i = 0; i < toRemove; i++) {
             max_times.removeFirst();
             max_times.removeLast();
@@ -143,6 +141,29 @@ public class LogParser {
         fw.write("AVG AVG: " + avg + " ms\n");
         fw.flush();
         fw.close();
+
+        // ---------------------------
+        String homeDir = System.getProperty("user.home");
+        File file = new File(homeDir + File.separatorChar + "stats.txt");
+        FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
+        FileLock lock = null;
+
+        try {
+            lock = channel.lock();
+            ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+            buffer.put((n + "\t" + avg + "\n").getBytes()).flip();
+            long pos = channel.size();
+            channel.write(buffer, pos);
+        } catch (Exception exp) {
+            exp.printStackTrace();
+        } finally {
+            lock.release();
+        }
+        channel.close();
+        // Print out the average max, min and avg
+        System.err.println("\n\nAVG MAX: " + avg_times.getLast() + " ms");
+        System.err.println("AVG MIN: " + avg_times.getFirst() + " ms");
+        System.err.println("AVG AVG: " + avg + " ms\n\n");
     }
 
     /**
@@ -151,11 +172,21 @@ public class LogParser {
      * @throws Exception
      */
     public static void main(String args[]) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Usage: java " + LogParser.class.getName() + " filename");
+        if (args.length < 2) {
+            System.err.println("Usage: java " + LogParser.class.getName() + " filename n");
+            System.err.println("filename: the path of the file to be parsed");
+            System.err.println("n: the total number of requests to be considered");
             System.exit(1);
         }
 
-        parse(args[0]);
+        int n = 0;
+        try {
+            n = Integer.parseInt(args[1]);
+        } catch (NumberFormatException nfe) {
+            System.err.println("ERROR: " + nfe.getMessage());
+            System.exit(-1);
+        }
+
+        parse(args[0], n);
     }
 }

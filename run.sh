@@ -32,6 +32,8 @@
 url=$1;
 n=$2;
 delay=$3;
+nReq=$4;
+
 log_file=$(date +%s)-log.txt
 filename=$n-$delay-$log_file
 printf "Running clients with:\n";
@@ -45,5 +47,5 @@ mvn exec:java -Dexec.mainClass="org.jboss.nio2.client.JioClient" -Dexec.args="$u
 printf "max \t min \t avg\n" > $filename
 cat $log_file | egrep -v '[a-zA-Z]|^\s*$' >> $filename
 
-mvn exec:java -Dexec.mainClass="org.jboss.nio2.client.LogParser" -Dexec.args="$filename"
+mvn exec:java -Dexec.mainClass="org.jboss.nio2.client.LogParser" -Dexec.args="$filename $nReq"
 

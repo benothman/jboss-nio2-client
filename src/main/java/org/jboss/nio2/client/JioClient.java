@@ -196,13 +196,13 @@ public class JioClient extends Thread {
     }
 
     /**
+     * Send request to the server
      *
-     * @param os
      * @throws Exception
      */
     private void sendRequest() throws IOException {
         this.os.write(("GET " + this.url.getPath() + " HTTP/1.1\n").getBytes());
-        this.os.write(("User-Agent: " + JioClient.class.getName() + "\n").getBytes());
+        this.os.write(("User-Agent: " + getClass().getName() + "\n").getBytes());
         this.os.write(("Host: " + this.url.getHost() + "\n").getBytes());
         this.os.write("Connection: keep-alive\n".getBytes());
         this.os.write(CRLF.getBytes());
@@ -210,6 +210,7 @@ public class JioClient extends Thread {
     }
 
     /**
+     * Read the response from the server
      *
      * @return data received from server
      * @throws IOException
@@ -225,6 +226,7 @@ public class JioClient extends Thread {
             }
         }
 
+        //System.out.println("Content length to read: " + contentLength);
         //System.out.println("");
         long read = 0;
 
@@ -232,7 +234,9 @@ public class JioClient extends Thread {
             read += line.length() + 1;
             //System.out.println(line);
         }
-        //System.out.println("\n\n**************************************************\n\n");
+
+        // System.out.println("Content length read: " + read);
+
         return "Hello world!";
     }
 
@@ -244,7 +248,7 @@ public class JioClient extends Thread {
     public static void main(String[] args) throws Exception {
 
         if (args.length < 1) {
-            System.err.println("Usage: java " + TestClient.class.getName() + " URL [n] [delay]");
+            System.err.println("Usage: java " + JioClient.class.getName() + " URL [n] [delay]");
             System.err.println("\tURL: The url of the service to test.");
             System.err.println("\tn: The number of clients. (default is " + NB_CLIENTS + ")");
             System.err.println("\tdelay: The delay between writes. (default is " + DEFAULT_DELAY + "ms)");
