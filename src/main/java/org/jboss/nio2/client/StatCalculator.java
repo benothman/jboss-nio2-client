@@ -54,7 +54,7 @@ public class StatCalculator {
         }
 
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
-        HashMap<Integer, StatElement> stats = new HashMap<Integer, StatElement>();
+        HashMap<Integer, StatCalculator.Pair> stats = new HashMap<Integer, StatCalculator.Pair>();
         String line = null;
 
         while ((line = br.readLine()) != null) {
@@ -66,10 +66,10 @@ public class StatCalculator {
             int key = Integer.parseInt(tab[0]);
             double value = Double.parseDouble(tab[1]);
             if (stats.get(key) == null) {
-                stats.put(key, new StatElement());
+                stats.put(key, new StatCalculator.Pair());
             }
 
-            StatElement p = stats.get(key);
+            StatCalculator.Pair p = stats.get(key);
             p.add(value);
         }
         br.close();
@@ -78,13 +78,13 @@ public class StatCalculator {
         List<Integer> keys = new ArrayList<Integer>(stats.keySet());
         // Sorting keys in ascending order
         Collections.sort(keys);
-        StatElement p = null;
-        fw.write("Req/Sec \t AVG\n");
-        System.out.println("\n Req/Sec \t AVG");
+        StatCalculator.Pair p = null;
+        fw.write("Req/Sec\tSamples\tAVG\n");
+        System.out.println("\nReq/Sec\tSamples\tAVG");
         for (int key : keys) {
             p = stats.get(key);
-            System.out.println(" " + key + " \t " + p.getAvg());
-            fw.write(key + "  \t  " + p.getAvg() + "\n");
+            System.out.println(key + "\t" + p.samples() + "\t" + p.getAvg());
+            fw.write(key + "\t" + p.samples() + "\t" + p.getAvg() + "\n");
         }
         fw.flush();
         fw.close();
@@ -94,32 +94,22 @@ public class StatCalculator {
     /**
      *
      */
-    private static class StatElement {
+    private static class Pair {
 
         private int counter = 0;
         private double sum = 0;
 
-        /**
-         * @return the average of the
-         */
         double getAvg() {
             return sum / counter;
         }
 
-        /**
-         *
-         * @param value
-         */
+        int samples() {
+            return counter;
+        }
+
         void add(double value) {
             sum += value;
             counter++;
-        }
-
-        /**
-         * @return the number of samples used
-         */
-        int samples() {
-            return counter;
         }
     }
 }
