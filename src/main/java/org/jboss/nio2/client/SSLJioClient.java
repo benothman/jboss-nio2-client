@@ -158,7 +158,7 @@ public class SSLJioClient extends Thread {
     protected void connect() throws Exception {
         try {
             SSLContext sslCtx = SSLContext.getInstance("TLS");
-            sslCtx.init(null, null, new java.security.SecureRandom());
+            sslCtx.init(null, trustAllCerts, new java.security.SecureRandom());
             SSLSocketFactory socketFactory = sslCtx.getSocketFactory();
             Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
             // Open connection with server
