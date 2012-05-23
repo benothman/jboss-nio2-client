@@ -111,6 +111,7 @@ public class SSLJioClient extends JioClient {
             // Open connection with server
             System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
             Socket sock = socketFactory.createSocket(this.url.getHost(), this.url.getPort());
+            connections.incrementAndGet();
             setInOut(sock);
         } catch (Exception ex) {
             ex.printStackTrace();

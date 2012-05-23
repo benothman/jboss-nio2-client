@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JioClient extends Thread {
 
-    private static final AtomicInteger connections = new AtomicInteger(0);
+    protected static final AtomicInteger connections = new AtomicInteger(0);
     /**
      *
      */
@@ -113,7 +113,9 @@ public class JioClient extends Thread {
         try {
             // Connect to the server
             this.connect();
+            System.out.println("Connection with server done.");
             while (connections.get() < NB_CLIENTS) {
+                System.out.println("Waiting other clients getting ready -> clients not yet connected " + (NB_CLIENTS - connections.get()));
                 // wait until all clients connects
                 sleep(100);
             }
