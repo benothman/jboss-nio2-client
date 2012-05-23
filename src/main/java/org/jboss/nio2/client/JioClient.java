@@ -54,14 +54,14 @@ public class JioClient extends Thread {
      * Default wait delay 1000ms
      */
     public static final int DEFAULT_DELAY = 1000;
-    private static int NB_CLIENTS = 100;
+    protected static int NB_CLIENTS = 100;
     private long max_time = Long.MIN_VALUE;
     private long min_time = Long.MAX_VALUE;
     private double avg_time = 0;
     private int max;
     private int delay;
     private Socket channel;
-    private URL url;
+    protected URL url;
     private BufferedReader reader;
     private OutputStream os;
 
@@ -141,12 +141,21 @@ public class JioClient extends Thread {
         // Open connection with server
         Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
-        this.channel = new Socket(this.url.getHost(), this.url.getPort());
+        setInOut(new Socket(this.url.getHost(), this.url.getPort()));
+        connections.incrementAndGet();
+    }
+
+    /**
+     *
+     * @throws Exception
+     */
+    protected void setInOut(Socket socket) throws Exception {
+        this.channel = socket;
         this.channel.setSoTimeout(10000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
-        connections.incrementAndGet();
+
     }
 
     /**
@@ -167,11 +176,16 @@ public class JioClient extends Thread {
             Thread.sleep(this.delay);
             try {
                 time = System.currentTimeMillis();
+                System.out.println("Sending request to server");
                 sendRequest();
+                System.out.println("Request Sent");
+                System.out.println("Reading response from server");
                 response = readResponse();
                 time = System.currentTimeMillis() - time;
+                System.out.println("Server Response -> " + response);
             } catch (IOException exp) {
                 System.out.println("[" + getId() + "] Exception:" + exp.getMessage());
+                exp.printStackTrace();
                 break;
             }
 

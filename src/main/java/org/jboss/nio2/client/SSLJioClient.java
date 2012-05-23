@@ -19,11 +19,10 @@
  */
 package org.jboss.nio2.client;
 
-import java.io.*;
+import java.io.File;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -36,9 +35,8 @@ import javax.net.ssl.X509TrustManager;
  *
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  */
-public class SSLJioClient extends Thread {
+public class SSLJioClient extends JioClient {
 
-    private static final AtomicInteger connections = new AtomicInteger(0);
     private static final TrustManager[] trustAllCerts = new TrustManager[]{
         new X509TrustManager() {
 
@@ -56,32 +54,6 @@ public class SSLJioClient extends Thread {
             }
         }
     };
-    /**
-     *
-     */
-    public static final int READ_BUFFER_SIZE = 16 * 1024;
-    /**
-     *
-     */
-    public static final String CRLF = "\r\n";
-    /**
-     *
-     */
-    public static final int MAX = 1000;
-    /**
-     * Default wait delay 1000ms
-     */
-    public static final int DEFAULT_DELAY = 1000;
-    private static int NB_CLIENTS = 100;
-    private long max_time = Long.MIN_VALUE;
-    private long min_time = Long.MAX_VALUE;
-    private double avg_time = 0;
-    private int max;
-    private int delay;
-    private Socket channel;
-    private URL url;
-    private BufferedReader reader;
-    private OutputStream os;
 
     /**
      * Create a new instance of {@code JioClient}
@@ -90,8 +62,7 @@ public class SSLJioClient extends Thread {
      * @param delay
      */
     public SSLJioClient(int d_max, int delay) {
-        this.max = d_max;
-        this.delay = delay;
+        super(d_max, delay);
     }
 
     /**
@@ -102,8 +73,7 @@ public class SSLJioClient extends Thread {
      * @param delay
      */
     public SSLJioClient(URL url, int d_max, int delay) {
-        this(d_max, delay);
-        this.url = url;
+        super(url, d_max, delay);
     }
 
     /**
@@ -113,8 +83,7 @@ public class SSLJioClient extends Thread {
      * @param delay
      */
     public SSLJioClient(URL url, int delay) {
-        this(delay);
-        this.url = url;
+        super(url, delay);
     }
 
     /**
@@ -123,147 +92,27 @@ public class SSLJioClient extends Thread {
      * @param delay
      */
     public SSLJioClient(int delay) {
-        this(60 * 1000 / delay, delay);
-    }
-
-    @Override
-    public void run() {
-        try {
-            // Connect to the server
-            this.connect();
-            while (connections.get() < NB_CLIENTS) {
-                // wait until all clients connects
-                sleep(100);
-            }
-            // wait for 2 seconds until all threads are ready
-            sleep(DEFAULT_DELAY);
-            runit();
-        } catch (Exception exp) {
-            System.err.println("Exception: " + exp.getMessage());
-            exp.printStackTrace();
-        } finally {
-            try {
-                this.channel.close();
-            } catch (IOException ioex) {
-                System.err.println("Exception: " + ioex.getMessage());
-                ioex.printStackTrace();
-            }
-        }
+        super(delay);
     }
 
     /**
      *
      * @throws Exception
      */
+    @Override
     protected void connect() throws Exception {
         try {
             SSLContext sslCtx = SSLContext.getInstance("TLS");
-            sslCtx.init(null, trustAllCerts, new java.security.SecureRandom());
+            sslCtx.init(null, null, new java.security.SecureRandom());
             SSLSocketFactory socketFactory = sslCtx.getSocketFactory();
             Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
             // Open connection with server
             System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
-            this.channel = socketFactory.createSocket(this.url.getHost(), this.url.getPort());
-            this.channel.setSoTimeout(20000);
-            this.os = this.channel.getOutputStream();
-            this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
-            System.out.println("Connection to server established ...");
-            connections.incrementAndGet();
+            Socket sock = socketFactory.createSocket(this.url.getHost(), this.url.getPort());
+            setInOut(sock);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    /**
-     *
-     * @throws Exception
-     */
-    public void runit() throws Exception {
-
-        Random random = new Random();
-        // Wait a delay to ensure that all threads are ready
-        sleep(4 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
-        long time = 0;
-        String response = null;
-        int counter = 0;
-        int min_count = 10 * 1000 / delay;
-        int max_count = 50 * 1000 / delay;
-        while ((this.max--) > 0) {
-            Thread.sleep(this.delay);
-            try {
-                time = System.currentTimeMillis();
-                sendRequest();
-                response = readResponse();
-                time = System.currentTimeMillis() - time;
-                System.out.println("Server Response: " + response);
-            } catch (IOException exp) {
-                System.out.println("[" + getId() + "] Exception:" + exp.getMessage());
-                break;
-            }
-
-            if (counter >= min_count && counter <= max_count) {
-                // update the average response time
-                avg_time += time;
-                // update the maximum response time
-                if (time > max_time) {
-                    max_time = time;
-                }
-                // update the minimum response time
-                if (time < min_time) {
-                    min_time = time;
-                }
-            }
-            counter++;
-        }
-        avg_time /= (max_count - min_count + 1);
-        // For each thread print out the maximum, minimum and average response
-        // times
-        System.out.println(max_time + " \t " + min_time + " \t " + avg_time);
-    }
-
-    /**
-     * Send request to the server
-     *
-     * @throws Exception
-     */
-    private void sendRequest() throws IOException {
-        this.os.write(("GET " + this.url.getPath() + " HTTP/1.1\n").getBytes());
-        this.os.write(("User-Agent: " + getClass().getName() + "\n").getBytes());
-        this.os.write(("Host: " + this.url.getHost() + "\n").getBytes());
-        this.os.write("Connection: keep-alive\n".getBytes());
-        this.os.write(CRLF.getBytes());
-        this.os.flush();
-    }
-
-    /**
-     * Read the response from the server
-     *
-     * @return data received from server
-     * @throws IOException
-     */
-    public String readResponse() throws IOException {
-        long contentLength = 0;
-        String line;
-        while ((line = this.reader.readLine()) != null && !line.trim().equals("")) {
-            //System.out.println(line);
-            String tab[] = line.split("\\s*:\\s*");
-            if (tab[0].equalsIgnoreCase("Content-length")) {
-                contentLength = Long.parseLong(tab[1]);
-            }
-        }
-
-        //System.out.println("Content length to read: " + contentLength);
-        //System.out.println("");
-        long read = 0;
-
-        while (read < contentLength && (line = this.reader.readLine()) != null) {
-            read += line.length() + 1;
-            //System.out.println(line);
-        }
-
-        // System.out.println("Content length read: " + read);
-
-        return "Hello world!";
     }
 
     /**
@@ -304,12 +153,14 @@ public class SSLJioClient extends Thread {
         System.out.println("\tn: " + NB_CLIENTS);
         System.out.println("\tdelay: " + delay);
 
+
         String home = System.getProperty("user.home");
+        System.out.println("user.home -> " + home);
         System.setProperty("javax.net.ssl.trustStore", home + File.separatorChar + ".keystore");
         System.setProperty("javax.net.ssl.trustStorePassword", "bismillah");
 
 
-        SSLJioClient clients[] = new SSLJioClient[NB_CLIENTS];
+        Thread clients[] = new Thread[NB_CLIENTS];
 
         for (int i = 0; i < clients.length; i++) {
             clients[i] = new SSLJioClient(strURL, delay);
