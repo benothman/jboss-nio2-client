@@ -155,7 +155,7 @@ public class JioClient extends Thread {
      */
     protected void setInOut(Socket socket) throws Exception {
         this.channel = socket;
-        this.channel.setSoTimeout(20000);
+        this.channel.setSoTimeout(60000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
