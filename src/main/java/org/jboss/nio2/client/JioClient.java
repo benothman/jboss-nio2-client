@@ -108,14 +108,17 @@ public class JioClient extends Thread {
         this(60 * 1000 / delay, delay);
     }
 
+    public void setup() throws Exception {
+        this.connect();
+        connections.incrementAndGet();
+    }
+
     @Override
     public void run() {
         try {
-            // Connect to the server
-            this.connect();
-            System.out.println("Connection with server done.");
+            // Setting up connection with server
+            this.setup();
             while (connections.get() < NB_CLIENTS) {
-                System.out.println("Waiting other clients getting ready -> clients not yet connected " + (NB_CLIENTS - connections.get()));
                 // wait until all clients connects
                 sleep(100);
             }
@@ -144,7 +147,6 @@ public class JioClient extends Thread {
         Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
         System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
         setInOut(new Socket(this.url.getHost(), this.url.getPort()));
-        connections.incrementAndGet();
     }
 
     /**

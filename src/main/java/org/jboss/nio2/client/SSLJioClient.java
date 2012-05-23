@@ -102,16 +102,13 @@ public class SSLJioClient extends JioClient {
     @Override
     protected void connect() throws Exception {
         try {
-            System.out.println("Starting SSL configuration");
             SSLContext sslCtx = SSLContext.getInstance("TLS");
             sslCtx.init(null, null, new java.security.SecureRandom());
             SSLSocketFactory socketFactory = sslCtx.getSocketFactory();
-            System.out.println("SSL configured");
             Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
             // Open connection with server
             System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
             Socket sock = socketFactory.createSocket(this.url.getHost(), this.url.getPort());
-            connections.incrementAndGet();
             setInOut(sock);
         } catch (Exception ex) {
             ex.printStackTrace();
