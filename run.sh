@@ -22,7 +22,7 @@
 # site: http://www.fsf.org.
 
 
-# File: run_async.sh
+# File: run.sh
 #
 # Created on Nov 1, 2011 at 10:30:28 AM 
 #
