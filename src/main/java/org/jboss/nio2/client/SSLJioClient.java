@@ -155,7 +155,6 @@ public class SSLJioClient extends JioClient {
 
 
         String home = System.getProperty("user.home") + File.separatorChar;
-        System.out.println("user.home -> " + home);
         System.setProperty("javax.net.ssl.trustStore", home + ".keystore");
         System.setProperty("javax.net.ssl.trustStorePassword", "bismillah");
 

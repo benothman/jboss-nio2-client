@@ -166,7 +166,6 @@ public class JioClient extends Thread {
      * @throws Exception
      */
     public void runit() throws Exception {
-        System.out.println("Start running Stress Tests");
         Random random = new Random();
         // Wait a delay to ensure that all threads are ready
         sleep(4 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
@@ -179,13 +178,9 @@ public class JioClient extends Thread {
             Thread.sleep(this.delay);
             try {
                 time = System.currentTimeMillis();
-                System.out.println("Sending request to server");
                 sendRequest();
-                System.out.println("Request Sent");
-                System.out.println("Reading response from server");
                 response = readResponse();
                 time = System.currentTimeMillis() - time;
-                System.out.println("Server Response -> " + response);
             } catch (IOException exp) {
                 System.out.println("[" + getId() + "] Exception:" + exp.getMessage());
                 exp.printStackTrace();
@@ -243,16 +238,11 @@ public class JioClient extends Thread {
             }
         }
 
-        //System.out.println("Content length to read: " + contentLength);
-        //System.out.println("");
         long read = 0;
 
         while (read < contentLength && (line = this.reader.readLine()) != null) {
             read += line.length() + 1;
-            //System.out.println(line);
         }
-
-        // System.out.println("Content length read: " + read);
 
         return "Hello world!";
     }
