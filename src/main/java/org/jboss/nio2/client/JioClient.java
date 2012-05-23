@@ -162,7 +162,7 @@ public class JioClient extends Thread {
      * @throws Exception
      */
     public void runit() throws Exception {
-
+        System.out.println("Start running Stress Tests");
         Random random = new Random();
         // Wait a delay to ensure that all threads are ready
         sleep(4 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
