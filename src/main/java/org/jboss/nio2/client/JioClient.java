@@ -155,7 +155,6 @@ public class JioClient extends Thread {
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
-
     }
 
     /**
