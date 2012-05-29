@@ -20,13 +20,11 @@
 package org.jboss.nio2.client;
 
 import java.io.File;
-import java.net.Socket;
+import java.io.FileInputStream;
 import java.net.URL;
+import java.security.KeyStore;
 import java.util.Random;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 
 /**
  * {@code JioClient}
@@ -103,12 +101,18 @@ public class SSLJioClient extends JioClient {
     protected void connect() throws Exception {
         try {
             SSLContext sslCtx = SSLContext.getInstance("TLS");
-            sslCtx.init(null, null, new java.security.SecureRandom());
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            KeyStore ks = KeyStore.getInstance("JKS");
+            String fileName = System.getProperty("javax.net.ssl.keyStore");
+            char[] passphrase = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
+            ks.load(new FileInputStream(fileName), passphrase);
+            kmf.init(ks, passphrase);
+            sslCtx.init(kmf.getKeyManagers(), trustAllCerts, new java.security.SecureRandom());
             SSLSocketFactory socketFactory = sslCtx.getSocketFactory();
             Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
             // Open connection with server
             System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
-            Socket sock = socketFactory.createSocket(this.url.getHost(), this.url.getPort());
+            SSLSocket sock = (SSLSocket) socketFactory.createSocket(this.url.getHost(), this.url.getPort());
             setInOut(sock);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -155,8 +159,10 @@ public class SSLJioClient extends JioClient {
 
 
         String home = System.getProperty("user.home") + File.separatorChar;
-        System.setProperty("javax.net.ssl.trustStore", home + ".keystore");
-        System.setProperty("javax.net.ssl.trustStorePassword", "bismillah");
+        System.setProperty("javax.net.ssl.trustStore", home + "cacerts.jks");
+        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
+        System.setProperty("javax.net.ssl.keyStore", home + ".keystore");
+        System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
 
 
         Thread clients[] = new Thread[NB_CLIENTS];
