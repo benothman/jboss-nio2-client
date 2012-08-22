@@ -231,7 +231,7 @@ public class JioClient extends Thread {
         long contentLength = 0;
         String line;
         while ((line = this.reader.readLine()) != null && !line.trim().equals("")) {
-            System.out.println(line);
+            //System.out.println(line);
             String tab[] = line.split("\\s*:\\s*");
             if (tab[0].equalsIgnoreCase("Content-length")) {
                 contentLength = Long.parseLong(tab[1]);
