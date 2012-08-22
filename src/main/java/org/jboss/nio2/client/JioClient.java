@@ -65,7 +65,7 @@ public class JioClient extends Thread {
 	private BufferedReader reader;
 	private OutputStream os;
 
-	private String request;
+	private byte[] requestBytes;
 
 	/**
 	 * Create a new instance of {@code JioClient}
@@ -114,11 +114,11 @@ public class JioClient extends Thread {
 		this.connect();
 		connections.incrementAndGet();
 
-		this.request = "GET " + this.url.getPath() + " HTTP/1.1\n" 
+		this.requestBytes = ("GET " + this.url.getPath() + " HTTP/1.1\n" 
 				+ "Host: " + this.url.getHost() + "\n" 
 				+ "User-Agent: " + getClass().getName() + "\n" 
 				+ "Connection: keep-alive\n"
-				+ CRLF;
+				+ CRLF).getBytes();
 	}
 
 	@Override
@@ -224,7 +224,7 @@ public class JioClient extends Thread {
 	 * @throws Exception
 	 */
 	private void sendRequest() throws IOException {
-		this.os.write(this.request.getBytes());
+		this.os.write(this.requestBytes);
 		this.os.flush();
 	}
 
