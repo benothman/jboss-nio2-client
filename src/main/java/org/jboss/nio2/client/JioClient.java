@@ -30,273 +30,286 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@code JioClient}
- *
+ * 
  * Created on Nov 11, 2011 at 3:38:26 PM
- *
+ * 
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  */
 public class JioClient extends Thread {
 
-    protected static final AtomicInteger connections = new AtomicInteger(0);
-    /**
+	protected static final AtomicInteger connections = new AtomicInteger(0);
+	/**
      *
      */
-    public static final int READ_BUFFER_SIZE = 16 * 1024;
-    /**
+	public static final int READ_BUFFER_SIZE = 16 * 1024;
+	/**
      *
      */
-    public static final String CRLF = "\r\n";
-    /**
+	public static final String CRLF = "\r\n";
+	/**
      *
      */
-    public static final int MAX = 1000;
-    /**
-     * Default wait delay 1000ms
-     */
-    public static final int DEFAULT_DELAY = 1000;
-    protected static int NB_CLIENTS = 100;
-    private long max_time = Long.MIN_VALUE;
-    private long min_time = Long.MAX_VALUE;
-    private double avg_time = 0;
-    private int max;
-    private int delay;
-    private Socket channel;
-    protected URL url;
-    private BufferedReader reader;
-    private OutputStream os;
+	public static final int MAX = 1000;
+	/**
+	 * Default wait delay 1000ms
+	 */
+	public static final int DEFAULT_DELAY = 1000;
+	protected static int NB_CLIENTS = 100;
+	private long max_time = Long.MIN_VALUE;
+	private long min_time = Long.MAX_VALUE;
+	private double avg_time = 0;
+	private int max;
+	private int delay;
+	private Socket channel;
+	protected URL url;
+	private BufferedReader reader;
+	private OutputStream os;
 
-    /**
-     * Create a new instance of {@code JioClient}
-     *
-     * @param d_max
-     * @param delay
-     */
-    public JioClient(int d_max, int delay) {
-        this.max = d_max;
-        this.delay = delay;
-    }
+	private String request;
 
-    /**
-     * Create a new instance of {@code JioClient}
-     *
-     * @param url
-     * @param d_max
-     * @param delay
-     */
-    public JioClient(URL url, int d_max, int delay) {
-        this(d_max, delay);
-        this.url = url;
-    }
+	/**
+	 * Create a new instance of {@code JioClient}
+	 * 
+	 * @param d_max
+	 * @param delay
+	 */
+	public JioClient(int d_max, int delay) {
+		this.max = d_max;
+		this.delay = delay;
+	}
 
-    /**
-     * Create a new instance of {@code JioClient}
-     *
-     * @param url
-     * @param delay
-     */
-    public JioClient(URL url, int delay) {
-        this(delay);
-        this.url = url;
-    }
+	/**
+	 * Create a new instance of {@code JioClient}
+	 * 
+	 * @param url
+	 * @param d_max
+	 * @param delay
+	 */
+	public JioClient(URL url, int d_max, int delay) {
+		this(d_max, delay);
+		this.url = url;
+	}
 
-    /**
-     * Create a new instance of {@code JioClient}
-     *
-     * @param delay
-     */
-    public JioClient(int delay) {
-        this(60 * 1000 / delay, delay);
-    }
+	/**
+	 * Create a new instance of {@code JioClient}
+	 * 
+	 * @param url
+	 * @param delay
+	 */
+	public JioClient(URL url, int delay) {
+		this(delay);
+		this.url = url;
+	}
 
-    public void setup() throws Exception {
-        this.connect();
-        connections.incrementAndGet();
-    }
+	/**
+	 * Create a new instance of {@code JioClient}
+	 * 
+	 * @param delay
+	 */
+	public JioClient(int delay) {
+		this(60 * 1000 / delay, delay);
+	}
 
-    @Override
-    public void run() {
-        try {
-            // Setting up connection with server
-            this.setup();
-            while (connections.get() < NB_CLIENTS) {
-                // wait until all clients connects
-                sleep(100);
-            }
-            // wait for 2 seconds until all threads are ready
-            sleep(DEFAULT_DELAY);
-            runit();
-        } catch (Exception exp) {
-            System.err.println("Exception: " + exp.getMessage());
-            exp.printStackTrace();
-        } finally {
-            try {
-                this.channel.close();
-            } catch (IOException ioex) {
-                System.err.println("Exception: " + ioex.getMessage());
-                ioex.printStackTrace();
-            }
-        }
-    }
+	public void setup() throws Exception {
+		this.connect();
+		connections.incrementAndGet();
 
-    /**
-     *
-     * @throws Exception
-     */
-    protected void connect() throws Exception {
-        // Open connection with server
-        Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
-        System.out.println("Connecting to server on " + this.url.getHost() + ":" + this.url.getPort());
-        setInOut(new Socket(this.url.getHost(), this.url.getPort()));
-    }
+		this.request = "GET " + this.url.getPath() + " HTTP/1.1\n" 
+				+ "Host: " + this.url.getHost() + "\n" 
+				+ "User-Agent: " + getClass().getName() + "\n" 
+				+ "Connection: keep-alive\n"
+				+ CRLF;
+	}
 
-    /**
-     *
-     * @throws Exception
-     */
-    protected void setInOut(Socket socket) throws Exception {
-        this.channel = socket;
-        this.channel.setSoTimeout(100000);
-        this.os = this.channel.getOutputStream();
-        this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
-        System.out.println("Connection to server established ...");
-    }
+	@Override
+	public void run() {
+		try {
+			// Setting up connection with server
+			this.setup();
+			while (connections.get() < NB_CLIENTS) {
+				// wait until all clients connects
+				sleep(100);
+			}
+			// wait for 2 seconds until all threads are ready
+			sleep(DEFAULT_DELAY);
+			runit();
+		} catch (Exception exp) {
+			System.err.println("Exception: " + exp.getMessage());
+			exp.printStackTrace();
+		} finally {
+			try {
+				this.channel.close();
+			} catch (IOException ioex) {
+				System.err.println("Exception: " + ioex.getMessage());
+				ioex.printStackTrace();
+			}
+		}
+	}
 
-    /**
-     *
-     * @throws Exception
-     */
-    public void runit() throws Exception {
-        Random random = new Random();
-        // Wait a delay to ensure that all threads are ready
-        sleep(4 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
-        long time = 0;
-        String response = null;
-        int counter = 0;
-        int min_count = 10 * 1000 / delay;
-        int max_count = 50 * 1000 / delay;
-        while ((this.max--) > 0) {
-            Thread.sleep(this.delay);
-            try {
-                time = System.currentTimeMillis();
-                sendRequest();
-                response = readResponse();
-                time = System.currentTimeMillis() - time;
-            } catch (IOException exp) {
-                System.out.println("[" + getId() + "] Exception:" + exp.getMessage());
-                exp.printStackTrace();
-                break;
-            }
+	/**
+	 * 
+	 * @throws Exception
+	 */
+	protected void connect() throws Exception {
+		// Open connection with server
+		Thread.sleep(new Random().nextInt(5 * NB_CLIENTS));
+		System.out.println("Connecting to server on " + this.url.getHost()
+				+ ":" + this.url.getPort());
+		setInOut(new Socket(this.url.getHost(), this.url.getPort()));
+	}
 
-            if (counter >= min_count && counter <= max_count) {
-                // update the average response time
-                avg_time += time;
-                // update the maximum response time
-                if (time > max_time) {
-                    max_time = time;
-                }
-                // update the minimum response time
-                if (time < min_time) {
-                    min_time = time;
-                }
-            }
-            counter++;
-        }
-        avg_time /= (max_count - min_count + 1);
-        // For each thread print out the maximum, minimum and average response
-        // times
-        System.out.println(max_time + " \t " + min_time + " \t " + avg_time);
-    }
+	/**
+	 * 
+	 * @throws Exception
+	 */
+	protected void setInOut(Socket socket) throws Exception {
+		this.channel = socket;
+		this.channel.setSoTimeout(100000);
+		this.os = this.channel.getOutputStream();
+		this.reader = new BufferedReader(new InputStreamReader(
+				this.channel.getInputStream()));
+		System.out.println("Connection to server established ...");
+	}
 
-    /**
-     * Send request to the server
-     *
-     * @throws Exception
-     */
-    private void sendRequest() throws IOException {
-        this.os.write(("GET " + this.url.getPath() + " HTTP/1.1\n").getBytes());
-        this.os.write(("Host: " + this.url.getHost() + "\n").getBytes());
-        this.os.write(("User-Agent: " + getClass().getName() + "\n").getBytes());
-        this.os.write("Connection: keep-alive\n".getBytes());
-        this.os.write(CRLF.getBytes());
-        this.os.flush();
-    }
+	/**
+	 * 
+	 * @throws Exception
+	 */
+	public void runit() throws Exception {
+		Random random = new Random();
+		// Wait a delay to ensure that all threads are ready
+		sleep(4 * DEFAULT_DELAY + random.nextInt(NB_CLIENTS));
+		long time = 0;
+		String response = null;
+		int counter = 0;
+		int min_count = 10 * 1000 / delay;
+		int max_count = 50 * 1000 / delay;
+		while ((this.max--) > 0) {
+			Thread.sleep(this.delay);
+			try {
+				time = System.currentTimeMillis();
+				sendRequest();
+				response = readResponse();
+				time = System.currentTimeMillis() - time;
+			} catch (IOException exp) {
+				System.out.println("[" + getId() + "] Exception:"
+						+ exp.getMessage());
+				exp.printStackTrace();
+				break;
+			}
 
-    /**
-     * Read the response from the server
-     *
-     * @return data received from server
-     * @throws IOException
-     */
-    public String readResponse() throws IOException {
-        long contentLength = 0;
-        String line;
-        while ((line = this.reader.readLine()) != null && !line.trim().equals("")) {
-            //System.out.println(line);
-            String tab[] = line.split("\\s*:\\s*");
-            if (tab[0].equalsIgnoreCase("Content-length")) {
-                contentLength = Long.parseLong(tab[1]);
-            }
-        }
+			if (counter >= min_count && counter <= max_count) {
+				// update the average response time
+				avg_time += time;
+				// update the maximum response time
+				if (time > max_time) {
+					max_time = time;
+				}
+				// update the minimum response time
+				if (time < min_time) {
+					min_time = time;
+				}
+			}
+			counter++;
+		}
+		avg_time /= (max_count - min_count + 1);
+		// For each thread print out the maximum, minimum and average response
+		// times
+		System.out.println(max_time + " \t " + min_time + " \t " + avg_time);
+	}
 
-        long read = 0;
+	/**
+	 * Send request to the server
+	 * 
+	 * @throws Exception
+	 */
+	private void sendRequest() throws IOException {
+		this.os.write(this.request.getBytes());
+		this.os.flush();
+	}
 
-        while (read < contentLength && (line = this.reader.readLine()) != null) {
-            read += line.length() + 1;
-        }
+	/**
+	 * Read the response from the server
+	 * 
+	 * @return data received from server
+	 * @throws IOException
+	 */
+	public String readResponse() throws IOException {
+		long contentLength = 0;
+		String line;
+		while ((line = this.reader.readLine()) != null
+				&& !line.trim().equals("")) {
+			// System.out.println(line);
+			String tab[] = line.split("\\s*:\\s*");
+			if (tab[0].equalsIgnoreCase("Content-length")) {
+				contentLength = Long.parseLong(tab[1]);
+			}
+		}
 
-        return "Hello world!";
-    }
+		long read = 0;
 
-    /**
-     *
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
+		while (read < contentLength && (line = this.reader.readLine()) != null) {
+			read += line.length() + 1;
+		}
 
-        if (args.length < 1) {
-            System.err.println("Usage: java " + JioClient.class.getName() + " URL [n] [delay]");
-            System.err.println("\tURL: The url of the service to test.");
-            System.err.println("\tn: The number of clients. (default is " + NB_CLIENTS + ")");
-            System.err.println("\tdelay: The delay between writes. (default is " + DEFAULT_DELAY + "ms)");
-            System.exit(1);
-        }
+		return "Hello world!";
+	}
 
-        URL strURL = new URL(args[0]);
-        int delay = DEFAULT_DELAY;
+	/**
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception {
 
-        if (args.length > 1) {
-            try {
-                NB_CLIENTS = Integer.parseInt(args[1]);
-                if (args.length > 2) {
-                    delay = Integer.parseInt(args[2]);
-                    if (delay < 1) {
-                        throw new IllegalArgumentException("Negative number: delay");
-                    }
-                }
-            } catch (Exception exp) {
-                System.err.println("Error: " + exp.getMessage());
-                System.exit(1);
-            }
-        }
+		if (args.length < 1) {
+			System.err.println("Usage: java " + JioClient.class.getName()
+					+ " URL [n] [delay]");
+			System.err.println("\tURL: The url of the service to test.");
+			System.err.println("\tn: The number of clients. (default is "
+					+ NB_CLIENTS + ")");
+			System.err
+					.println("\tdelay: The delay between writes. (default is "
+							+ DEFAULT_DELAY + "ms)");
+			System.exit(1);
+		}
 
-        System.out.println("\nRunning test with parameters:");
-        System.out.println("\tURL: " + strURL);
-        System.out.println("\tn: " + NB_CLIENTS);
-        System.out.println("\tdelay: " + delay);
+		URL strURL = new URL(args[0]);
+		int delay = DEFAULT_DELAY;
 
-        JioClient clients[] = new JioClient[NB_CLIENTS];
+		if (args.length > 1) {
+			try {
+				NB_CLIENTS = Integer.parseInt(args[1]);
+				if (args.length > 2) {
+					delay = Integer.parseInt(args[2]);
+					if (delay < 1) {
+						throw new IllegalArgumentException(
+								"Negative number: delay");
+					}
+				}
+			} catch (Exception exp) {
+				System.err.println("Error: " + exp.getMessage());
+				System.exit(1);
+			}
+		}
 
-        for (int i = 0; i < clients.length; i++) {
-            clients[i] = new JioClient(strURL, delay);
-        }
+		System.out.println("\nRunning test with parameters:");
+		System.out.println("\tURL: " + strURL);
+		System.out.println("\tn: " + NB_CLIENTS);
+		System.out.println("\tdelay: " + delay);
 
-        for (int i = 0; i < clients.length; i++) {
-            clients[i].start();
-        }
+		JioClient clients[] = new JioClient[NB_CLIENTS];
 
-        for (int i = 0; i < clients.length; i++) {
-            clients[i].join();
-        }
-    }
+		for (int i = 0; i < clients.length; i++) {
+			clients[i] = new JioClient(strURL, delay);
+		}
+
+		for (int i = 0; i < clients.length; i++) {
+			clients[i].start();
+		}
+
+		for (int i = 0; i < clients.length; i++) {
+			clients[i].join();
+		}
+	}
 }
