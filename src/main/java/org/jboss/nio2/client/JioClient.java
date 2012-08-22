@@ -155,7 +155,7 @@ public class JioClient extends Thread {
      */
     protected void setInOut(Socket socket) throws Exception {
         this.channel = socket;
-        this.channel.setSoTimeout(60000);
+        this.channel.setSoTimeout(100000);
         this.os = this.channel.getOutputStream();
         this.reader = new BufferedReader(new InputStreamReader(this.channel.getInputStream()));
         System.out.println("Connection to server established ...");
@@ -214,8 +214,8 @@ public class JioClient extends Thread {
      */
     private void sendRequest() throws IOException {
         this.os.write(("GET " + this.url.getPath() + " HTTP/1.1\n").getBytes());
-        this.os.write(("User-Agent: " + getClass().getName() + "\n").getBytes());
         this.os.write(("Host: " + this.url.getHost() + "\n").getBytes());
+        this.os.write(("User-Agent: " + getClass().getName() + "\n").getBytes());
         this.os.write("Connection: keep-alive\n".getBytes());
         this.os.write(CRLF.getBytes());
         this.os.flush();
@@ -231,7 +231,7 @@ public class JioClient extends Thread {
         long contentLength = 0;
         String line;
         while ((line = this.reader.readLine()) != null && !line.trim().equals("")) {
-            //System.out.println(line);
+            System.out.println(line);
             String tab[] = line.split("\\s*:\\s*");
             if (tab[0].equalsIgnoreCase("Content-length")) {
                 contentLength = Long.parseLong(tab[1]);

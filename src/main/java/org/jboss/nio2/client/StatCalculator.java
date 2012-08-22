@@ -28,88 +28,120 @@ import java.util.List;
 /**
  * {@code StatCalculator}
  * <p/>
- *
+ * 
  * Created on May 3, 2012 at 11:42:28 AM
- *
+ * 
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  */
 public class StatCalculator {
 
-    /**
-     * Create a new instance of {@code StatCalculator}
-     */
-    public StatCalculator() {
-        super();
-    }
+	/**
+	 * Create a new instance of {@code StatCalculator}
+	 */
+	public StatCalculator() {
+		super();
+	}
 
-    /**
+	/**
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String args[]) throws Exception {
+		if (args.length < 1) {
+			System.err.println("Usage: java " + StatCalculator.class.getName()
+					+ " path");
+			System.exit(1);
+		}
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				new FileInputStream(args[0])));
+		HashMap<Integer, StatCalculator.Tuple> stats = new HashMap<Integer, StatCalculator.Tuple>();
+		HashMap<Integer, List<Double>> data = new HashMap<Integer, List<Double>>();
+		String line = null;
+
+		while ((line = br.readLine()) != null) {
+			if ("".equals(line.trim())) {
+				continue;
+			}
+
+			String tab[] = line.split("\\s+");
+			int key = Integer.parseInt(tab[0]);
+			double value = Double.parseDouble(tab[1]);
+			if (stats.get(key) == null) {
+				stats.put(key, new StatCalculator.Tuple());
+			}
+
+			if (data.get(key) == null) {
+				data.put(key, new ArrayList<Double>());
+			}
+
+			StatCalculator.Tuple tuple = stats.get(key);
+			tuple.add(value);
+			data.get(key).add(value);
+		}
+
+		br.close();
+
+		FileWriter fw = new FileWriter(new File(args[0] + "_cal.txt"));
+		List<Integer> keys = new ArrayList<Integer>(stats.keySet());
+		// Sorting keys in ascending order
+		Collections.sort(keys);
+		StatCalculator.Tuple tuple = null;
+		fw.write("Req/Sec\tSamples\tDelta\tAVG\n");
+		System.out.println("\nReq/Sec\tSamples\tDelta\tAVG");
+		for (int key : keys) {
+			tuple = stats.get(key);
+			double avg = tuple.getAvg();
+			double delta = delta(data.get(key), avg);
+
+			System.out.println(delta);
+			
+			//System.out.println(key + "\t" + tuple.samples() + "\t" + delta + "\t" + avg);
+			fw.write(key + "\t" + tuple.samples() + "\t" + delta + "\t" + tuple.getAvg() + "\n");
+		}
+		fw.flush();
+		fw.close();
+		System.out.println("\n");
+	}
+
+	/**
+	 * 
+	 * @param data
+	 * @return
+	 */
+	private static double delta(List<Double> data, double avg) {
+		double delta = 0;
+		int n = data.size();
+		for (double x : data) {
+			delta += Math.pow(x - avg, 2);
+		}
+
+		delta = Math.sqrt(delta / (n * (n - 1)));
+
+		return delta + 2.5;
+	}
+
+	/**
      *
-     * @param args
-     * @throws Exception
      */
-    public static void main(String args[]) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Usage: java " + StatCalculator.class.getName() + " path");
-            System.exit(1);
-        }
+	private static class Tuple {
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
-        HashMap<Integer, StatCalculator.Pair> stats = new HashMap<Integer, StatCalculator.Pair>();
-        String line = null;
+		private int counter = 0;
+		private double sum = 0;
+		private double delta = 0;
 
-        while ((line = br.readLine()) != null) {
-            if ("".equals(line.trim())) {
-                continue;
-            }
+		double getAvg() {
+			return sum / counter;
+		}
 
-            String tab[] = line.split("\\s+");
-            int key = Integer.parseInt(tab[0]);
-            double value = Double.parseDouble(tab[1]);
-            if (stats.get(key) == null) {
-                stats.put(key, new StatCalculator.Pair());
-            }
+		int samples() {
+			return counter;
+		}
 
-            StatCalculator.Pair p = stats.get(key);
-            p.add(value);
-        }
-        br.close();
-
-        FileWriter fw = new FileWriter(new File(args[0] + "_cal.txt"));
-        List<Integer> keys = new ArrayList<Integer>(stats.keySet());
-        // Sorting keys in ascending order
-        Collections.sort(keys);
-        StatCalculator.Pair p = null;
-        fw.write("Req/Sec\tSamples\tAVG\n");
-        System.out.println("\nReq/Sec\tSamples\tAVG");
-        for (int key : keys) {
-            p = stats.get(key);
-            System.out.println(key + "\t" + p.samples() + "\t" + p.getAvg());
-            fw.write(key + "\t" + p.samples() + "\t" + p.getAvg() + "\n");
-        }
-        fw.flush();
-        fw.close();
-        System.out.println("\n");
-    }
-
-    /**
-     *
-     */
-    private static class Pair {
-
-        private int counter = 0;
-        private double sum = 0;
-
-        double getAvg() {
-            return sum / counter;
-        }
-
-        int samples() {
-            return counter;
-        }
-
-        void add(double value) {
-            sum += value;
-            counter++;
-        }
-    }
+		void add(double value) {
+			sum += value;
+			counter++;
+		}
+	}
 }
