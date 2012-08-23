@@ -94,10 +94,7 @@ public class StatCalculator {
 			tuple = stats.get(key);
 			double avg = tuple.getAvg();
 			double delta = delta(data.get(key), avg);
-
-			System.out.println(delta);
-			
-			//System.out.println(key + "\t" + tuple.samples() + "\t" + delta + "\t" + avg);
+			System.out.println(key + "\t" + tuple.samples() + "\t" + delta + "\t" + avg);
 			fw.write(key + "\t" + tuple.samples() + "\t" + delta + "\t" + tuple.getAvg() + "\n");
 		}
 		fw.flush();
@@ -110,7 +107,7 @@ public class StatCalculator {
 	 * @param data
 	 * @return
 	 */
-	private static double delta(List<Double> data, double avg) {
+	protected static double delta(List<Double> data, double avg) {
 		double delta = 0;
 		int n = data.size();
 		for (double x : data) {
@@ -119,7 +116,7 @@ public class StatCalculator {
 
 		delta = Math.sqrt(delta / (n * (n - 1)));
 
-		return delta + 2.5;
+		return delta;
 	}
 
 	/**
