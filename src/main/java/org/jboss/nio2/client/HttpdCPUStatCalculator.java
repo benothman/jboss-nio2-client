@@ -22,41 +22,34 @@
 package org.jboss.nio2.client;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 
 /**
- * {@code HttpdCPUStatParser}
+ * {@code HttpdCPUStatCalculator}
  * 
- * Created on Aug 20, 2012 at 3:57:00 PM
+ * Created on Aug 24, 2012 at 11:19:44 AM
  * 
  * @author <a href="mailto:nbenothm@redhat.com">Nabil Benothman</a>
  */
-public class HttpdCPUStatParser {
+public class HttpdCPUStatCalculator {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		if (args.length < 2) {
-			System.err.println("Usage: java " + CPUStatParser.class.getName()
-					+ " file nReq");
+		if (args.length < 1) {
+			System.err.println("Usgae: java "
+					+ HttpdCPUStatCalculator.class.getName() + " fileName");
 			System.exit(-1);
 		}
 
-		DecimalFormat df = new DecimalFormat("#.##");
-
 		BufferedReader br = new BufferedReader(new InputStreamReader(
 				new FileInputStream(args[0])));
-
-		int nReq = Integer.valueOf(args[1]);
-
+		HashMap<Integer, HttpdCPUStatCalculator.Tuple> data = new HashMap<Integer, HttpdCPUStatCalculator.Tuple>();
 		String line = null;
-		HashMap<Integer, Tuple> data = new HashMap<Integer, HttpdCPUStatParser.Tuple>();
 
 		while ((line = br.readLine()) != null) {
 			line = line.trim();
@@ -65,20 +58,14 @@ public class HttpdCPUStatParser {
 			}
 
 			String tab[] = line.split("\\s+");
+			int nReq = Integer.valueOf(tab[0]);
+			double cpu = Double.valueOf(tab[1]);
+			double mem = Double.valueOf(tab[2]);
 
-			int pid = Integer.valueOf(tab[0]);
-			double mem = 0;
-			if (tab[5].matches("[0-9]+m")) {
-				mem = Double.valueOf(tab[5].substring(0, tab[5].length() - 1)) * 1024;
-			} else {
-				mem = Double.valueOf(tab[5]);
-			}
-			double cpu = Double.valueOf(tab[8]);
-
-			Tuple t = data.get(pid);
+			Tuple t = data.get(nReq);
 			if (t == null) {
-				t = new Tuple(pid);
-				data.put(pid, t);
+				t = new Tuple(nReq);
+				data.put(nReq, t);
 			}
 
 			t.cpu += cpu;
@@ -88,57 +75,30 @@ public class HttpdCPUStatParser {
 
 		br.close();
 
-		double cpu = 0, mem = 0;
-		Tuple tup;
-		for (int pid : data.keySet()) {
-			tup = data.get(pid);
-			cpu += tup.getCPU();
-			mem += tup.getMEM();
+		DecimalFormat df = new DecimalFormat("#.##");
+		System.out.println("Req/Sec\t\t%CPU\t\tMem (MB)");
+		Tuple t = null;
+		for (int key : data.keySet()) {
+			t = data.get(key);
+			System.out.println(t.nReq + " \t\t" + df.format(t.getCPU())
+					+ "\t\t" + df.format(t.getMEM()));
 		}
-
-		String homeDir = System.getProperty("user.home");
-
-		FileWriter fw = new FileWriter(
-				homeDir + File.separatorChar + "cpu.txt", true);
-
-		System.out.println("\nCPU = " + df.format(cpu) + "%, MEM = "
-				+ df.format(mem / 1024) + "m\n");
-
-		fw.write(nReq + "\t\t" + df.format(cpu) + "\t\t" + df.format(mem / 1024));
-		fw.close();
 	}
 
 	private static class Tuple {
-		int pid;
-		double cpu;
-		double mem;
-		int count;
+		int nReq, count;
+		double cpu = 0, mem = 0;
 
-		/**
-		 * 
-		 * Create a new instance of {@code Tuple}
-		 * 
-		 * @param pid
-		 */
-		public Tuple(int pid) {
-			this.pid = pid;
-		}
-
-		/**
-		 * 
-		 * @return
-		 */
-		public int getPID() {
-			return this.pid;
+		public Tuple(int nReq) {
+			this.nReq = nReq;
 		}
 
 		public double getCPU() {
-			return this.cpu / this.count;
+			return this.cpu / count;
 		}
 
 		public double getMEM() {
-			return this.mem / this.count;
+			return this.mem / count;
 		}
 	}
-
 }
