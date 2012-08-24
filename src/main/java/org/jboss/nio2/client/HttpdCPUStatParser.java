@@ -72,8 +72,7 @@ public class HttpdCPUStatParser {
 
 			Tuple t = data.get(pid);
 			if (t == null) {
-				t = new Tuple();
-				t.pid = pid;
+				t = new Tuple(pid);
 				data.put(pid, t);
 			}
 
@@ -85,14 +84,11 @@ public class HttpdCPUStatParser {
 		br.close();
 
 		double cpu = 0, mem = 0;
-
+		Tuple tup;
 		for (int pid : data.keySet()) {
-			Tuple t = data.get(pid);
-			System.out.println("PID = " + t.pid + ", CPU = " + t.getCPU()
-					+ ", MEM = " + t.getMEM());
-
-			cpu += data.get(pid).getCPU();
-			mem += data.get(pid).getMEM();
+			tup = data.get(pid);
+			cpu += tup.getCPU();
+			mem += tup.getMEM();
 		}
 
 		System.out.println("\nCPU = " + df.format(cpu) + "%, MEM = "
@@ -105,12 +101,30 @@ public class HttpdCPUStatParser {
 		double mem;
 		int count;
 
+		/**
+		 * 
+		 * Create a new instance of {@code Tuple}
+		 * 
+		 * @param pid
+		 */
+		public Tuple(int pid) {
+			this.pid = pid;
+		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		public int getPID() {
+			return this.pid;
+		}
+
 		public double getCPU() {
-			return cpu / count;
+			return this.cpu / this.count;
 		}
 
 		public double getMEM() {
-			return mem / count;
+			return this.mem / this.count;
 		}
 	}
 
