@@ -76,11 +76,11 @@ public class HttpdCPUStatCalculator {
 		br.close();
 
 		DecimalFormat df = new DecimalFormat("#.##");
-		System.out.println("Req/Sec\t\t%CPU\t\tMem (MB)");
+		System.out.println("Req/Sec\t\tSamples\t\t%CPU\t\tMem (MB)");
 		Tuple t = null;
 		for (int key : data.keySet()) {
 			t = data.get(key);
-			System.out.println(t.nReq + " \t\t" + df.format(t.getCPU())
+			System.out.println(t.nReq + "\t\t" + t.count + " \t\t" + df.format(t.getCPU())
 					+ "\t\t" + df.format(t.getMEM()));
 		}
 	}
