@@ -104,7 +104,7 @@ public class HttpdCPUStatParser {
 		System.out.println("\nCPU = " + df.format(cpu) + "%, MEM = "
 				+ df.format(mem / 1024) + "m\n");
 
-		fw.write(nReq + "\t\t" + df.format(cpu) + "\t\t" + df.format(mem / 1024));
+		fw.write(nReq + "\t" + df.format(cpu) + "\t" + df.format(mem / 1024));
 		fw.close();
 	}
 
