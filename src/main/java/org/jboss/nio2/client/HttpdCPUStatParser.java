@@ -101,10 +101,8 @@ public class HttpdCPUStatParser {
 		FileWriter fw = new FileWriter(
 				homeDir + File.separatorChar + "cpu.txt", true);
 
-		System.out.println("\nCPU = " + df.format(cpu) + "%, MEM = "
-				+ df.format(mem / 1024) + "m\n");
-
-		fw.write(nReq + "\t" + df.format(cpu) + "\t" + df.format(mem / 1024));
+		System.out.println("\nCPU = " + df.format(cpu) + "%, MEM = " + df.format(mem / 1024) + "m\n");
+		fw.write(nReq + "\t" + df.format(cpu) + "\t" + df.format(mem / 1024) + "\n");
 		fw.close();
 	}
 
