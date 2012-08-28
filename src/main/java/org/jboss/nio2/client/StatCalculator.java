@@ -59,7 +59,7 @@ public class StatCalculator {
 			System.exit(1);
 		}
 
-		DecimalFormat df = new DecimalFormat("#.###");
+		DecimalFormat df = new DecimalFormat("#.####");
 		BufferedReader br = new BufferedReader(new InputStreamReader(
 				new FileInputStream(args[0])));
 		HashMap<Integer, StatCalculator.Tuple> stats = new HashMap<Integer, StatCalculator.Tuple>();
