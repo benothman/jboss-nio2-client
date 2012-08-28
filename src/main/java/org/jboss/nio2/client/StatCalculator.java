@@ -19,7 +19,12 @@
  */
 package org.jboss.nio2.client;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,6 +59,7 @@ public class StatCalculator {
 			System.exit(1);
 		}
 
+		DecimalFormat df = new DecimalFormat("#.###");
 		BufferedReader br = new BufferedReader(new InputStreamReader(
 				new FileInputStream(args[0])));
 		HashMap<Integer, StatCalculator.Tuple> stats = new HashMap<Integer, StatCalculator.Tuple>();
@@ -94,7 +100,7 @@ public class StatCalculator {
 			tuple = stats.get(key);
 			double avg = tuple.getAvg();
 			double delta = delta(data.get(key), avg);
-			System.out.println(key + "\t" + tuple.samples() + "\t" + delta + "\t" + avg);
+			System.out.println(key + "\t" + tuple.samples() + "\t" + df.format(delta) + "\t" + df.format(avg));
 			fw.write(key + "\t" + tuple.samples() + "\t" + delta + "\t" + tuple.getAvg() + "\n");
 		}
 		fw.flush();
