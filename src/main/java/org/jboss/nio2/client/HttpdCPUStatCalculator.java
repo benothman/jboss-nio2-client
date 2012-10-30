@@ -75,7 +75,7 @@ public class HttpdCPUStatCalculator {
 
 		br.close();
 
-		DecimalFormat df = new DecimalFormat("#.##");
+		DecimalFormat df = new DecimalFormat("#.####");
 		System.out.println("Req/Sec\t\tSamples\t\t%CPU\t\tMem (MB)");
 		Tuple t = null;
 		for (int key : data.keySet()) {

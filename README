@@ -51,17 +51,18 @@
  4) The project now is built, so to start the test, just execute the shell script "run.sh"
     as following:
     
-    projectDir$ sh run.sh url n delay nReq
+    projectDir$ sh run.sh url n delay nReq nClients
     
     with:
       url: Your application URL
       n  : The number of clients
       delay: The delay between two requests
-      nReq : The total number of requests per second
+      nReq : The total number of requests
+      nClients: The total number of clients
       
     Example:
       
-      projectDir$ sh run.sh http://www.your-domaine.com/your-app 1000 1000 5000
+      projectDir$ sh run.sh http://www.your-domaine.com/your-app 1000 1000 1000000 5000
     	
     
 	
