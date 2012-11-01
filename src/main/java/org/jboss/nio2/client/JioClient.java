@@ -157,15 +157,14 @@ public class JioClient extends Thread {
 			// wait for 2 seconds until all threads are ready
 			sleep(DEFAULT_DELAY);
 			runit();
-		} catch (Exception exp) {
+		} catch (Throwable exp) {
 			System.err.println("Exception: " + exp.getMessage());
 			exp.printStackTrace();
 		} finally {
 			try {
 				this.channel.close();
-			} catch (IOException ioex) {
-				System.err.println("Exception: " + ioex.getMessage());
-				ioex.printStackTrace();
+			} catch (Throwable th) {
+				// NOPE
 			}
 		}
 	}
